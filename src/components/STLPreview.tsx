@@ -4,7 +4,7 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 interface STLPreviewProps {
-  file: File | null; // STL file to preview
+  file: File | null;
 }
 
 const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
@@ -15,12 +15,11 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
 
     const container = containerRef.current;
 
-    // Renderer
+    // Renderer with tone mapping and shadow support
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; // For realistic tone mapping
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -29,6 +28,9 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
 
     // Scene
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf0f0f0); // Light gray background
+
+    // Fog for better depth perception
     scene.fog = new THREE.Fog(0xa0a0a0, 10, 50);
 
     // Camera
@@ -38,42 +40,33 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
       0.1,
       1000
     );
-    camera.position.set(7, 3, 7);
+    camera.position.set(7, 7, 10);
 
-    // Resize handling
-    const onWindowResize = () => {
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-    };
-    window.addEventListener("resize", onWindowResize);
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0x404040, 1); // Soft light
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Softer ambient light
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.camera.top = 4;
-    directionalLight.shadow.camera.bottom = -4;
-    directionalLight.shadow.camera.left = -4;
-    directionalLight.shadow.camera.right = 4;
+    directionalLight.position.set(5, 10, 7.5);
+    directionalLight.castShadow = true; // Enable shadows
+    directionalLight.shadow.camera.top = 10;
+    directionalLight.shadow.camera.bottom = -10;
+    directionalLight.shadow.camera.left = -10;
+    directionalLight.shadow.camera.right = 10;
     directionalLight.shadow.camera.near = 0.1;
-    directionalLight.shadow.camera.far = 40;
-    directionalLight.shadow.bias = -0.002;
-    directionalLight.position.set(0, 20, 20);
+    directionalLight.shadow.camera.far = 50;
     scene.add(directionalLight);
 
-    // Ground
+    // Ground plane for context
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(100, 100),
       new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
     );
     ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
+    ground.receiveShadow = true; // Ground receives shadows
     scene.add(ground);
 
-    // OrbitControls
+    // Orbit controls for interactivity
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
@@ -84,12 +77,14 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
     reader.onload = (event) => {
       if (!event.target?.result) return;
 
+      // Parse the STL file
       const geometry = loader.parse(event.target.result as ArrayBuffer);
 
+      // Material for the STL object
       const material = new THREE.MeshStandardMaterial({ color: 0x0077ff });
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
+      mesh.castShadow = true; // Enable shadow casting for the model
+      mesh.receiveShadow = true; // Enable shadow receiving for the model
       scene.add(mesh);
 
       // Adjust camera and controls
@@ -110,11 +105,11 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
       controls.update();
       renderer.render(scene, camera);
     };
+
     animate();
 
-    // Cleanup
+    // Cleanup on unmount
     return () => {
-      window.removeEventListener("resize", onWindowResize);
       container.removeChild(renderer.domElement);
       renderer.dispose();
       scene.clear();
@@ -124,7 +119,7 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
   return (
     <div
       ref={containerRef}
-      style={{ width: "50%%", height: "275px", border: "1px solid #ccc" }}
+      style={{ width: "100%", height: "400px", border: "1px solid #ccc" }}
     />
   );
 };
