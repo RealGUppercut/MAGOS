@@ -4,7 +4,7 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 interface STLPreviewProps {
-  file: File | null; // STL file to preview
+  file: File | null;
 }
 
 const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
@@ -23,7 +23,7 @@ const STLPreview: React.FC<STLPreviewProps> = ({ file }) => {
     );
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(container.clientWidth, container.clientHeight);
-    container.innerHTML = ""; // Clear previous renders
+    container.innerHTML = "";
     container.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
