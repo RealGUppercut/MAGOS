@@ -152,25 +152,32 @@ const UploadPage = () => {
           <label className="block text-sm font-medium text-gray-700">
             Tags
           </label>
-          <select
-            multiple
-            value={tags}
-            onChange={(e) =>
-              setTags(
-                Array.from(e.target.selectedOptions, (option) => option.value)
-              )
-            }
-            className="mt-1 block w-full border border-gray-300 rounded-md"
-          >
+          <div className="mt-2 space-y-2">
             {availableTags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
+              <div key={tag} className="flex items-center">
+                <input
+                  type="checkbox"
+                  id={`tag-${tag}`}
+                  value={tag}
+                  checked={tags.includes(tag)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setTags([...tags, tag]);
+                    } else {
+                      setTags(tags.filter((t) => t !== tag));
+                    }
+                  }}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor={`tag-${tag}`}
+                  className="ml-2 block text-sm text-gray-700"
+                >
+                  {tag}
+                </label>
+              </div>
             ))}
-          </select>
-          <p className="text-sm text-gray-500">
-            Hold down Ctrl (Windows) or Command (Mac) to select multiple tags.
-          </p>
+          </div>
         </div>
 
         <button
